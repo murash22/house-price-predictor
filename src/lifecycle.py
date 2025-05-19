@@ -42,7 +42,7 @@ def parse_cian():
         with_saving_csv=False,
         additional_settings={
             "start_page": 1,
-            "end_page": 2,
+            "end_page": 50,
             "object_type": "secondary"
         })
     df = pd.DataFrame(data)

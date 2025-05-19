@@ -7,16 +7,22 @@
 
 ### Структура проекта
 ```
-housing_price_prediction/
+house-price-prediction/
 ├── data/
 │   ├── raw/                # Исходные данные
 │   ├── processed/          # Обработанные данные
 ├── models/                 # Обученные модели
 ├── notebooks/             # Jupyter notebooks
-├── src/                   # Исходный код
-│   ├── data.py            # Обработка данных
-│   ├── models.py          # Модели машинного обучения
-│   └── utils.py           # Вспомогательные функции
+│   ├── EDA.ipynb
+│   └── train.ipynb
+│   service/
+│   ├── templates/
+│   │   └── index.html
+│   ├── app.py
+│   └── flask.log
+├── src/                   
+│   ├── cian_parse.py
+│   └── lifecycle.py           
 ├── requirements.txt       # Требования к зависимостям
 └── README.md
 ```
@@ -24,18 +30,11 @@ housing_price_prediction/
 ### Данные
 Используемые данные включают следующие характеристики:
 * Площадь жилья
-* Количество комнат
-* Расстояние до центра города
-* Год постройки
-* Тип здания
-* Район
-* Инфраструктура
-* И другие метрические и категориальные признаки
 
 ### Как запустить
 1. Клонируйте репозиторий:
 ```bash
-git clone https://github.com/yourusername/housing_price_prediction.git
+git clone https://github.com/murash22/house-price-predictor.git
 ```
 
 2. Установите зависимости:
@@ -45,27 +44,22 @@ pip install -r requirements.txt
 
 3. Запустите Jupyter Notebook:
 ```bash
-jupyter notebook
+python service/app.py
 ```
 
 ### Модели машинного обучения
 * **Linear Regression** - базовая линейная регрессия
-* **Random Forest** - ансамбль деревьев решений
-* **Gradient Boosting** - градиентный бустинг
-* **XGBoost** - экстремальный градиентный бустинг
-* **Neural Networks** - нейронные сети
 
 ### Метрики оценки
-* **Mean Absolute Error (MAE)**
 * **Mean Squared Error (MSE)**
 * **Root Mean Squared Error (RMSE)**
 * **R² Score**
 
 ### Результаты
 После обучения модели достигаются следующие результаты:
-* MAE: ~$2000
-* RMSE: ~$2500
-* R² Score: ~0.85
+* MSE: ~ 201804 млрд. руб
+* RMSE: ~ 14205 тыс. руб.
+* R² Score: ~ 0.58
 
 ### Как использовать модель
 1. Загрузите данные в формате CSV
