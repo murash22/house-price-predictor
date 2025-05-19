@@ -39,7 +39,7 @@ class HouseInfo:
     floor: int = None
 
 # Сохранение модели
-model_path = 'models/catboost_v1.pkl'
+model_path = 'models/catboost_v3.pkl'
 
 loaded_model = joblib.load(model_path)
 

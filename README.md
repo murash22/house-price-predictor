@@ -48,7 +48,7 @@ python service/app.py
 ```
 
 ### Модели машинного обучения
-* **Linear Regression** - базовая линейная регрессия
+* **Catboost**
 
 ### Метрики оценки
 * **Mean Absolute Error (MAE)**

@@ -13,7 +13,7 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 
 import logging
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 
 logger = logging.getLogger('lifecycle')
 logger.setLevel(logging.INFO)
@@ -43,8 +43,8 @@ def parse_cian():
         rooms=n_rooms,
         with_saving_csv=False,
         additional_settings={
-            "start_page": 1,
-            "end_page": 50,
+            "start_page": 51,
+            "end_page": 100,
             "object_type": "secondary"
         })
     df = pd.DataFrame(data)
@@ -102,18 +102,34 @@ def train_model(split_size, model_name):
         'loss_function': 'RMSE',
         'eval_metric': 'RMSE',
         'random_seed': 42,
-        'early_stopping_rounds': 50,
+        'early_stopping_rounds': 20,
         'verbose': 100
     }
 
-    model = CatBoostRegressor(**params)
-    model.fit(
-        train_pool,
-        eval_set=test_pool,
-        use_best_model=True
+    param_grid = {
+        'iterations': [500, 1000],
+        'depth': [4, 6, ],
+        'learning_rate': [0.01, 0.005],
+        'l2_leaf_reg': [1, 5]
+    }
+
+    logger.info("Starting GridSearch...")
+    grid_search = GridSearchCV(
+        estimator=CatBoostRegressor(**params),
+        param_grid=param_grid,
+        cv=3,
+        scoring='neg_root_mean_squared_error',
+        n_jobs=-1,
+        verbose=3
     )
 
-    joblib.dump(model, model_name)
+    grid_search.fit(X_train, y_train)
+
+    best_model = grid_search.best_estimator_
+    logger.info(f"Best params: {grid_search.best_params_}")
+
+
+    joblib.dump(best_model, model_name)
     test_data = X_test.copy()
     test_data['price'] = y_test
     test_data.to_csv(f"{processed_data_path}/test_data.csv")
@@ -155,6 +171,6 @@ if __name__ == "__main__":
     logger.info(f'launched with params: split={split}, model_path={model_path}')
 
     # parse_cian()
-    preprocess_data()
-    train_model(split, model_path)
+    # preprocess_data()
+    # train_model(split, model_path)
     test_model(model_path)
