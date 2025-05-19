@@ -51,15 +51,17 @@ python service/app.py
 * **Linear Regression** - базовая линейная регрессия
 
 ### Метрики оценки
+* **Mean Absolute Error (MAE)**
 * **Mean Squared Error (MSE)**
 * **Root Mean Squared Error (RMSE)**
 * **R² Score**
 
 ### Результаты
 После обучения модели достигаются следующие результаты:
-* MSE: ~ 201804 млрд. руб
-* RMSE: ~ 14205 тыс. руб.
-* R² Score: ~ 0.58
+* MAE: ~ 8774974 руб.
+* MSE: ~ 166750 млрд. руб
+* RMSE: ~ 12913 тыс. руб.
+* R² Score: ~ 0.660649
 
 ### Как использовать модель
 1. Загрузите данные в формате CSV
