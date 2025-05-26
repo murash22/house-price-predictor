@@ -1,6 +1,5 @@
 .venv
-data/raw
-data/processed
+data/raw/
 .idea
 service/flask.log
 notebooks/.ipynb_checkpoints
