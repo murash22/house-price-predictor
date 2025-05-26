@@ -1,4 +1,7 @@
 [core]
-    remote = myremote
+    remote = s3storage
 ['remote "myremote"']
     url = C:\dvc-data
+['remote "s3storage"']
+    url = s3://pabd25/amyratgeldiyev
+    endpointurl = https://storage.yandexcloud.net

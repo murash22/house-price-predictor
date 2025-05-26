@@ -154,7 +154,7 @@ if __name__ == "__main__":
     model_path = args.model
     logger.info(f'launched with params: split={split}, model_path={model_path}')
 
-    # parse_cian()
-    preprocess_data()
-    train_model(split, model_path)
-    test_model(model_path)
+    parse_cian()
+    # preprocess_data()
+    # train_model(split, model_path)
+    # test_model(model_path)
