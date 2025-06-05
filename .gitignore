@@ -5,3 +5,5 @@ service/flask.log
 notebooks/.ipynb_checkpoints
 lifecycle.log
 catboost_info
+logs
+dags/myratgeldiyev/.uv_cache
