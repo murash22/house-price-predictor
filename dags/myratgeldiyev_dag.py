@@ -10,10 +10,10 @@ import logging
 SPLIT_SIZE = 0.2
 MODEL_NAME = "model.pkl"
 
-BASE_DIR = os.path.dirname(__file__)
+BASE_DIR = "/opt/airflow/dags"
 MY_DIR = os.path.join(BASE_DIR, "myratgeldiyev")
 sys.path.append(BASE_DIR)
-REQUIREMENTS_FILE = "myratgeldiyev/requirements.txt"
+
 
 
 
@@ -24,7 +24,7 @@ os.environ["UV_CACHE_DIR"] = "/opt/airflow/dags/myratgeldiyev/.uv_cache"
 def get_db_params():
     hook = PostgresHook(postgres_conn_id='tutorial_pg_conn')
     conn = hook.get_conn()
-    params = {
+    p = {
         'host': conn.info.host,
         'port': conn.info.port,
         'dbname': conn.info.dbname,
@@ -32,13 +32,11 @@ def get_db_params():
         'password': conn.info.password
     }
     conn.close()
-    return params
+    return p
 
 
 default_args = {
     "owner": "ashyr"
-    # "retries": 0
-    # "retry_delay": timedelta(minutes=2),
 }
 
 @dag(
@@ -51,7 +49,7 @@ default_args = {
 )
 def project_dag():
     pg_params = get_db_params()
-    task_params = {
+    tasks_params = {
         'my_dir': MY_DIR,
         'db_params': pg_params,
         'split_size': SPLIT_SIZE,
@@ -88,18 +86,15 @@ def project_dag():
             );
             """)
 
-    @task.virtualenv(
-        requirements=REQUIREMENTS_FILE,
-        system_site_packages=False,
-    )
-    def run_parse(params):
+    @task
+    def run_parse(task_params):
         import datetime
         import logging
         import cianparser
         import pandas as pd
 
 
-        my_dir = params['my_dir']
+        my_dir = task_params['my_dir']
 
         logger = logging.getLogger('lifecycle')
         logger.setLevel(logging.INFO)
@@ -117,8 +112,8 @@ def project_dag():
             rooms=n_rooms,
             with_saving_csv=False,
             additional_settings={
-                "start_page": 1,
-                "end_page": 1,
+                "start_page": 3,
+                "end_page": 3,
                 "object_type": "secondary"
             })
         df = pd.DataFrame(data)
@@ -128,19 +123,16 @@ def project_dag():
                   index=False)
 
     # noinspection PyUnresolvedReferences
-    @task.virtualenv(
-        requirements=REQUIREMENTS_FILE,
-        system_site_packages=False,
-    )
-    def run_preprocess(params):
+    @task
+    def run_preprocess(task_params):
         import glob
         import pandas as pd
         from sqlalchemy import create_engine, Table, MetaData
         from sqlalchemy.dialects.postgresql import insert
         import logging
 
-        my_dir = params['my_dir']
-        db_params = params['db_params']
+        my_dir = task_params['my_dir']
+        db_params = task_params['db_params']
 
         logger = logging.getLogger('lifecycle')
         logger.setLevel(logging.INFO)
@@ -178,10 +170,10 @@ def project_dag():
         apartments_table = Table('apartments_myratgeldiyev', metadata, autoload_with=engine)
 
         batch_size = 100  # размер батча, можно увеличить
-
+        total_data = len(data)
         with engine.begin() as conn:
             for start in range(0, len(data), batch_size):
-                batch_df = data.iloc[start:start + batch_size]
+                batch_df = data.iloc[start:min(start + batch_size, total_data)]
                 records = batch_df.to_dict(orient='records')
 
                 stmt = insert(apartments_table).values(records)
@@ -205,11 +197,8 @@ def project_dag():
                 logger.info(f"failed to delete {file_path}: {e}")
 
     # noinspection PyUnresolvedReferences
-    @task.virtualenv(
-        requirements=REQUIREMENTS_FILE,
-        system_site_packages=False,
-    )
-    def run_train(params):
+    @task
+    def run_train(task_params):
         import joblib
         import logging
         import pandas as pd
@@ -219,12 +208,12 @@ def project_dag():
         from sklearn.metrics import mean_squared_error, r2_score
         from sqlalchemy import create_engine
 
-        my_dir = params['my_dir']
-        split_size = params['split_size']
-        model_name = params['model_name']
-        db_params = params['db_params']
-        X_cols = params['X_cols']
-        y_cols = params['y_cols']
+        my_dir = task_params['my_dir']
+        split_size = task_params['split_size']
+        model_name = task_params['model_name']
+        db_params = task_params['db_params']
+        X_cols = task_params['X_cols']
+        y_cols = task_params['y_cols']
 
         logger = logging.getLogger('lifecycle')
         logger.setLevel(logging.INFO)
@@ -285,6 +274,6 @@ def project_dag():
         logger.info(f"Model saved to {model_path}")
 
 
-    create_table_if_not_exists() >> run_parse(task_params) >> run_preprocess(task_params) >> run_train(task_params)
+    create_table_if_not_exists() >> run_parse(tasks_params) >> run_preprocess(tasks_params) >> run_train(tasks_params)
 
 project_dag = project_dag()
