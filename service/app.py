@@ -1,9 +1,12 @@
 import pandas as pd
+from dotenv import dotenv_values
 from flask import Flask, render_template, request
+from flask_cors import CORS
+from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
 from logging.config import dictConfig
 from dataclasses import dataclass
 import joblib
-from numpy.f2py.auxfuncs import throw_error
+# import configs
 
 dictConfig(
     {
@@ -30,6 +33,15 @@ dictConfig(
 )
 
 app = Flask(__name__)
+cfg = dotenv_values('.env')
+auth = HTTPTokenAuth(scheme='Bearer')
+tokens = {cfg['APP_TOKEN']: "user1"}
+CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+@auth.verify_token
+def verify_token(token):
+    if token in tokens:
+        return tokens[token]
 
 @dataclass
 class HouseInfo:
@@ -39,7 +51,11 @@ class HouseInfo:
     floor: int = None
 
 # Сохранение модели
-model_path = 'models/catboost_v1.pkl'
+from src.download_from_s3 import download_file
+folder = "models"
+model_name = "catboost_v1.pkl"
+download_file(folder, model_name)
+model_path = f'{folder}/{model_name}'
 
 loaded_model = joblib.load(model_path)
 
@@ -49,6 +65,7 @@ def index():
 
 
 @app.route('/api/numbers', methods=['POST'])
+@auth.login_required
 def process_numbers():
     data = request.get_json()
     app.logger.info(f'Requst data: {data}')
